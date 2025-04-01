@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -27,11 +28,6 @@ export class PostsService {
   async findAll() {
     const posts = await this.postRepo.find({ relations: { user: true } });
 
-    // return posts.map((post) => ({
-    //   ...post,
-    //   userId: post.userId.id,
-    // }));
-
     return posts.map((post) => {
       const { user, ...result } = post;
 
@@ -58,5 +54,43 @@ export class PostsService {
       ...result,
       userId: user.id,
     };
+  }
+
+  async editPost(req, id: number, dto: CreatePostDto) {
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    if (!post) {
+      throw new NotFoundException();
+    }
+
+    if (!(req.user.userId === post.user.id)) {
+      throw new ForbiddenException();
+    }
+
+    const updatedPost = await this.postRepo.update(post, { ...dto });
+
+    return updatedPost;
+  }
+
+  async deletePost(req, id: number) {
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    if (!post) {
+      throw new NotFoundException();
+    }
+
+    if (!(req.user.userId === post.user.id)) {
+      throw new ForbiddenException();
+    }
+
+    const deletedPost = await this.postRepo.delete(post);
+
+    return deletedPost;
   }
 }

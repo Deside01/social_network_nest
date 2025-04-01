@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { PostsModule } from './posts/posts.module';
 import { Post } from './posts/entities/post.entity';
+import { PostsController } from './posts/posts.controller';
 
 @Module({
   imports: [

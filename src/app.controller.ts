@@ -1,10 +1,17 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './auth/guards/local-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PostsService } from './posts/posts.service';
-import { CreatePostDto } from './posts/dto/create-post.dto';
 
 @Controller()
 export class AppController {
@@ -23,12 +30,6 @@ export class AppController {
   @Get('posts')
   async findPosts() {
     return this.postsService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('posts')
-  async createPost(@Req() req, @Body() dto: CreatePostDto) {
-    return this.postsService.createPost(req, dto);
   }
 
   @UseGuards(LocalAuthGuard)

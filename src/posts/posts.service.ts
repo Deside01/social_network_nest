@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
@@ -10,7 +14,7 @@ export class PostsService {
 
   async createPost(req, dto: CreatePostDto) {
     const newPost = this.postRepo.create(dto);
-    newPost.userId = req.user.userId;
+    newPost.user = req.user.userId;
 
     try {
       await this.postRepo.save(newPost);
@@ -21,11 +25,38 @@ export class PostsService {
   }
 
   async findAll() {
-    const posts = await this.postRepo.find({ relations: { userId: true } });
+    const posts = await this.postRepo.find({ relations: { user: true } });
 
-    return posts.map((post) => ({
-      ...post,
-      userId: post.userId.id,
-    }));
+    // return posts.map((post) => ({
+    //   ...post,
+    //   userId: post.userId.id,
+    // }));
+
+    return posts.map((post) => {
+      const { user, ...result } = post;
+
+      return {
+        ...result,
+        userId: user.id,
+      };
+    });
+  }
+
+  async findOne(id: number) {
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    if (!post) {
+      throw new NotFoundException();
+    }
+
+    const { user, ...result } = post;
+
+    return {
+      ...result,
+      userId: user.id,
+    };
   }
 }
